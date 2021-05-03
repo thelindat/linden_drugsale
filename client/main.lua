@@ -69,12 +69,8 @@ CanSellDrugs = function()
 			ESX.PlayerData.inventory = ESX.GetPlayerData().inventory
 			for k, v in pairs(ESX.PlayerData.inventory) do
 				if Config.Drugs[v.name] then
-					if drugs[v.name] then
-						drugs[v.name] = drugs[v.name] + v.count
-					else
-						drugs[v.name] = v.count
-						if not hasDrugs then hasDrugs = true end
-					end
+					drugs[v.name] = true
+					if not hasDrugs then hasDrugs = true end
 				end
 			end
 			if hasDrugs then
@@ -83,7 +79,8 @@ CanSellDrugs = function()
 				if IsControlJustReleased(0, 153) then
 					canSell = false
 					for k,v in pairs(drugs) do
-						print('name:'..k..' count:'..v..' total:$'..Config.Drugs[k]*v)
+						TriggerServerEvent('linden_drugsale:sellDrugs', k, v)
+						break
 					end
 				end	
 			end
