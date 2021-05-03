@@ -1,14 +1,16 @@
 fx_version 'cerulean'
 game 'gta5'
 
-description 'example resource'
+description 'https://github.com/thelindat/linden_drugsale'
+
+dependency 'extendedmode'
+shared_script '@extendedmode/imports.lua'
+shared_script 'config.lua'
 
 server_scripts {
-	'config.lua',
 	'server/*.lua'
 }
 
 client_scripts {
-	'config.lua',
 	'client/*.lua'
 }
