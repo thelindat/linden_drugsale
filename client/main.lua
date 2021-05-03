@@ -64,21 +64,25 @@ CanSellDrugs = function()
 	Citizen.CreateThread(function()
 		while canSell do
 			drugs = {}
+			local drugCount = 0
 			local sleep = 10000
 			ESX.PlayerData.inventory = ESX.GetPlayerData().inventory
 			for k, v in pairs(ESX.PlayerData.inventory) do
 				if Config.Drugs[v.name] then
-					if not drugs[v.name] then table.insert(drugs, v.name) end
+					if drugs[v.name] then drugs[v.name].count = drugs[v.name].count + v.count else drugs[v.name] = {index=drugCount+1, name=v.name, count=v.count} drugCount = drugCount+1 end
 				end
 			end
-			local drugCount = #drugs
 			if drugCount > 0 then
 				sleep = 5
-				Draw3dText(pedCoords,'Press ~g~[E]~w~ to sell drugs')
+				local text = 'Press ~g~[E]~w~ to sell drugs'
 				if IsControlJustReleased(0, 153) then
 					canSell = false
 					local random = math.random(1~(drugCount+2))
-					if random <= drugCount then TriggerServerEvent('linden_drugsale:sellDrugs', drugs[random])
+					if random <= drugCount then	
+						for k,v in pairs(drugs) do
+							if v.index == random then sellDrug = v break end
+						end
+						TriggerServerEvent('linden_drugsale:sellDrugs', sellDrug.name)
 					else	
 						local random = math.random(1,10)
 						if random > 8 then
@@ -87,7 +91,8 @@ CanSellDrugs = function()
 							TriggerServerEvent('wf-alerts:svNotify', dispatchData)
 						else print('not interested') end
 					end
-				end	
+				end
+				Draw3dText(pedCoords,text)
 			end
 			Citizen.Wait(sleep)
 		end
