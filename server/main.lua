@@ -1,5 +1,4 @@
-ESX = nil
-TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+ESX = ExM
 
 RegisterNetEvent('linden_drugsale:sellDrugs')
 AddEventHandler('linden_drugsale:sellDrugs', function(item)
