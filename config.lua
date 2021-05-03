@@ -1,6 +1,6 @@
 Config = {}
 
 Config.Drugs = {
-	'panties',
-	'cola'
+	['panties'] = 50,
+	['cola'] = 10
 }
