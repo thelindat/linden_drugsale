@@ -41,7 +41,7 @@ StartLoop = function()
 		while PlayerLoaded do
 			playerCoords = GetEntityCoords(playerPed)
 			local ped = GetPedInFront()
-			if ped and GetPedType(ped) ~= 1 and GetPedType(ped) ~= 28 then
+			if ped ~= 0 and GetPedType(ped) ~= 1 and GetPedType(ped) ~= 28 then
 				pedCoords = GetEntityCoords(ped)
 				local dist = #(playerCoords - pedCoords)
 				if dist < 1.0 then waitTime = 10
@@ -49,8 +49,7 @@ StartLoop = function()
 						canSell = true
 						CanSellDrugs(ped)
 					end
-				elseif dist < 4.0 then waitTime = 500 canSell = false
-				else waitTime = 2000 canSell = false end
+				elseif dist < 4.0 then waitTime = 500 canSell = false end
 			else
 				waitTime = 2000
 				if canSell then canSell = false end
