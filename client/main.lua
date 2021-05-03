@@ -49,7 +49,8 @@ StartLoop = function()
 						canSell = true
 						CanSellDrugs(ped)
 					end
-				elseif dist < 4.0 then waitTime = 500 canSell = false end
+				elseif dist < 4.0 then waitTime = 500 canSell = false
+				else waitTime = 2000 canSell = false end
 			else
 				waitTime = 2000
 				if canSell then canSell = false end
@@ -64,21 +65,20 @@ CanSellDrugs = function()
 	Citizen.CreateThread(function()
 		while canSell do
 			drugs = {}
+			local hasDrugs = false
 			local sleep = 10000
 			ESX.PlayerData.inventory = ESX.GetPlayerData().inventory
-			for i=1, #ESX.PlayerData.inventory do
-				for d=1, #Config.Drugs do
-					if ESX.PlayerData.inventory[i].name == Config.Drugs[d] then
-						local itemName = ESX.PlayerData.inventory[i].name
-						if drugs[itemName] then
-							drugs[itemName] = drugs[itemName] + ESX.PlayerData.inventory[i].count
-						else
-							drugs[itemName] = ESX.PlayerData.inventory[i].count
-						end
+			for k, v in pairs(ESX.PlayerData.inventory) do
+				if Config.Drugs[v.name] then
+					if drugs[v.name] then
+						drugs[v.name] = drugs[v.name] + v.count
+					else
+						drugs[v.name] = v.count
+						if not hasDrugs then hasDrugs = true end
 					end
 				end
 			end
-			if #drugs > 0 then
+			if hasDrugs then
 				sleep = 5
 				Draw3dText(pedCoords,'Press ~g~[E]~w~ to sell drugs')
 				if IsControlJustReleased(0, 153) then
