@@ -69,7 +69,12 @@ CanSellDrugs = function()
 			for i=1, #ESX.PlayerData.inventory do
 				for d=1, #Config.Drugs do
 					if ESX.PlayerData.inventory[i].name == Config.Drugs[d] then
-						drugs[#drugs+1] = {name = ESX.PlayerData.inventory[i].name, count = ESX.PlayerData.inventory[i].count}
+						local itemName = ESX.PlayerData.inventory[i].name
+						if drugs[itemName] then
+							drugs[itemName] = drugs[itemName] + ESX.PlayerData.inventory[i].count
+						else
+							drugs[itemName] = ESX.PlayerData.inventory[i].count
+						end
 					end
 				end
 			end
@@ -79,7 +84,7 @@ CanSellDrugs = function()
 				if IsControlJustReleased(0, 153) then
 					canSell = false
 					for k,v in pairs(drugs) do
-						print(v.name..' '..v.count)
+						print(k..' '..v)
 					end
 				end	
 			end
