@@ -83,7 +83,7 @@ CanSellDrugs = function()
 				if IsControlJustReleased(0, 153) then
 					canSell = false
 					for k,v in pairs(drugs) do
-						print(k..' '..v)
+						print('name:'..k..' count:'..v..' total:$'..Config.Drugs[k]*v)
 					end
 				end	
 			end
