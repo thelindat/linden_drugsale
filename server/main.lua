@@ -1,5 +1,3 @@
-ESX = ExM
-
 RegisterNetEvent('linden_drugsale:sellDrugs')
 AddEventHandler('linden_drugsale:sellDrugs', function(item)
 	local xPlayer = ESX.GetPlayerFromId(source)
