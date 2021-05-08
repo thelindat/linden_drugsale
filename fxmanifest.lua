@@ -3,8 +3,9 @@ game 'gta5'
 
 description 'https://github.com/thelindat/linden_drugsale'
 
-dependency 'extendedmode'
-shared_script '@extendedmode/imports.lua'
+dependency 'es_extended'
+shared_script '@es_extended/imports.lua'
+
 shared_script 'config.lua'
 
 server_scripts {
