@@ -66,7 +66,6 @@ CanSellDrugs = function()
 			drugs = {}
 			local drugCount = 0
 			local sleep = 10000
-			ESX.PlayerData.inventory = ESX.GetPlayerData().inventory
 			for k, v in pairs(ESX.PlayerData.inventory) do
 				if Config.Drugs[v.name] then
 					if drugs[v.name] then drugs[v.name].count = drugs[v.name].count + v.count else drugs[v.name] = {index=drugCount+1, name=v.name, count=v.count} drugCount = drugCount+1 end
