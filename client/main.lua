@@ -69,7 +69,8 @@ CanSellDrugs = function()
 	drugs = {}
 	local drugCount = 0
 		for k, v in pairs(Config.Drugs) do
-		drugCount = drugCount + ox_inventory:Search(source, 'count', Config.Drugs[k])
+			local count = ox_inventory:Search(source, 'count', Config.Drugs[k])
+			drugCount = drugCount + count
 	end
 	Citizen.CreateThread(function()
 		ESX.TriggerServerCallback('linden_drugsale:checkCops', function(copsOnline)
