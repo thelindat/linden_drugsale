@@ -1,0 +1,13 @@
+{
+    "Lua.diagnostics.globals": [
+        "RegisterNetEvent",
+        "AddEventHandler",
+        "exports",
+        "source",
+        "ESX",
+        "vector3"
+    ],
+    "Lua.diagnostics.disable": [
+        "undefined-global"
+    ]
+}
