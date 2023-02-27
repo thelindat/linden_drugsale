@@ -1,3 +1,5 @@
+local ox_inventory = exports.ox_inventory
+
 local canSell = false
 local isSelling = false
 local waitTime = 2000
@@ -66,11 +68,8 @@ CanSellDrugs = function()
 	isSelling = true
 	drugs = {}
 	local drugCount = 0
-	ESX.PlayerData.inventory = ESX.GetPlayerData().inventory
-	for k, v in pairs(ESX.PlayerData.inventory) do
-		if Config.Drugs[v.name] then
-			if drugs[v.name] then drugs[v.name].count = drugs[v.name].count + v.count else drugs[v.name] = {index=drugCount+1, name=v.name, count=v.count, label=v.label} drugCount = drugCount+1 end
-		end
+		for k, v in pairs(config.Drugs) do
+		drugCount = drugCount + ox_inventory:Search(source, 'count', Config.Drugs[v.name])
 	end
 	Citizen.CreateThread(function()
 		ESX.TriggerServerCallback('linden_drugsale:checkCops', function(copsOnline)
@@ -100,7 +99,11 @@ PedInteraction = function(playerPed, ped, item, count)
 
 	if interaction <= Config.ChanceToRob then
 		TriggerServerEvent('linden_drugsale:robPlayer', item, count)
-		exports['ms-notify']:SendAlert({ type = 'normal', text = 'You were robbed', icon = 'fas fa-info-circle'})
+		lib.notify({
+			title = 'You Were Robbed!',
+			description = 'Thank\'s Asshole!',
+			type = 'error'
+		})		
 		SetPedAsNoLongerNeeded(ped)
 		TaskSmartFleePed(ped, playerPed, 1000.0, -1, false, true)
 	end
@@ -116,30 +119,29 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 	SetEntityAsMissionEntity(ped)
 	TaskStandStill(ped, 5000)
 	TaskChatToPed(ped, playerPed)
-
-	TriggerEvent('mythic_progbar:client:progress', {
-		name = 'attempt_drug_sale',
+	lib.progressBar({
 		duration = Config.AttemptSaleTime,
 		label = 'Showing your product...',
 		useWhileDead = false,
 		canCancel = true,
-		controlDisables = {
-			disableMovement = true,
-			disableCarMovement = true,
-			disableMouse = false,
-			disableCombat = true,
+		disable = {
+			car = true,
+			move = true,
+			combat = true,
+			mouse = true,
 		},
-		animation = {
-			animDict = 'missheistdockssetup1clipboard@idle_a',
-			anim = 'idle_b',
+		anim = {
+			dict = 'missheistdockssetup1clipboard@idle_a',
+			clip = 'idle_b',
 		},
 		prop = {
 			model = 'prop_poly_bag_01',
-			coords = { x = 0.15, y = -0.15, z = 0.02 },
-			rotation = { x = 0.0, y = -40.0, z = -80.0 },
+			pos = vec3(0.15, -0.15, 0.02),
+			rot = vec3(0.0, -40.0, -80.0),
 			bone = 18905
-		}
-	}, function(status)
+		},
+	},
+	function(status)
 		if not status then
 			ClearPedTasks(playerPed)
 			
@@ -152,7 +154,7 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 			end
 			
 			local saleChance = math.random(1, 100)
-			local drugSelection = math.random(1, drugCount)
+			-- local drugSelection = math.random(1, drugCount)
 			local sellCount = math.random(1, Config.MaxSellAmount)
 			local drugToSell = nil
 			local salePrice = 0
@@ -202,7 +204,11 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 			if saleChance <= Config.ChanceToSell then
 				TriggerEvent('linden_drugsale:requestConfirm', drugToSell.name, drugToSell.label, sellCount, math.floor(salePrice), playerPed, ped)
 			else
-				exports['ms-notify']:SendAlert({ type = 'normal', text = 'This shit is weak', icon = 'fas fa-info-circle' })
+				lib.notify({
+					title = 'Feedback',
+					description = 'This shit is weak..',
+					type = 'inform'
+				})
 				PedInteraction(playerPed, ped, drugToSell.name, sellCount)
 			end
 		end
@@ -217,45 +223,54 @@ AddEventHandler('linden_drugsale:requestConfirm', function(drugToSell, label, se
 			Citizen.Wait(0)
 			timer = timer + 1
 			if IsControlJustReleased(0, 38) then
-				exports['ms-notify']:RemoveAlert('request_sale_confirmation')
-				exports['ms-notify']:SendAlert({ type = 'success', text='Confirmed', icon = 'fas fa-check', time = 1000 })
+				lib.notify({
+					title = 'Sold',
+					description = 'Thanks man.',
+					type = 'success'
+				})				
 				TriggerEvent('linden_drugsale:confirmSale', drugToSell, sellCount, salePrice, playerPed, ped)
 				break
 			end
 		end
 
 		if timer == Config.SaleConfirmTime then
-			exports['ms-notify']:SendAlert({ type = 'error', text='You took too long', icon = 'fas fa-ban' })
+			lib.notify({
+				title = 'Timeout',
+				description = 'You\'re taking too long, I\'m out of here.',
+				type = 'error'
+			})			
 			PedInteraction(playerPed, ped, drugToSell.name, sellCount)
 		end
-		
-		exports['ms-notify']:RemoveAlert('request_sale_confirmation')
 		timer = 0
 	end)
-	exports['ms-notify']:SendAlert({ id = 'request_sale_confirmation', type = 'normal', text = '[E] Sell '..sellCount..' '..label.. ' for $'..salePrice, icon = 'fas fa-info-circle', time = -1 })
+	lib.notify({
+		title = 'Confirm Sale',
+		description = 'Press [E] Sell '..sellCount..' '..label.. ' for $'..salePrice,
+		type = 'inform'
+	})
 end)
 
 AddEventHandler('linden_drugsale:confirmSale', function(drugToSell, sellCount, salePrice, playerPed, ped)
-	TriggerEvent('mythic_progbar:client:progress', {
-		name = 'selling_drugs',
+	lib.progressBar({
 		duration = Config.SaleTime,
 		label = 'Making the deal...',
 		useWhileDead = false,
 		canCancel = true,
-		controlDisables = {
-			disableMovement = true,
-			disableCarMovement = true,
-			disableMouse = false,
-			disableCombat = true,
+		disable = {
+			car = true,
+			move = true,
+			combat = true,
+			mouse = true,
 		},
-		animation = {
-			animDict = 'missheistdockssetup1clipboard@idle_a',
-			anim = 'idle_a'
+		anim = {
+			dict = 'missheistdockssetup1clipboard@idle_a',
+			clip = 'idle_a'
 		},
 		prop = {
 			model = 'prop_drug_package_02',
-			
-		}
+			pos = vec3(0.03, 0.03, 0.02),
+			rot = vec3(0.0, 0.0, -1.5)
+		},
 	}, function(status)
 		if not status then
 			ClearPedTasks(playerPed)
