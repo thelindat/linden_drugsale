@@ -17,24 +17,40 @@ Config.SaleLocations = {
 		coords = vector3(277.556, -835.5033, 29.2124),
 		radius = 20.0,
 		increaseSaleOf = 'meth_baggie',
-		increaseSaleChance = 60
+		increaseSaleChance = 60,
+		increaseEarnings = 1.40
 	},
-	-- Water = {
-	-- 	coords = vector3(235.8593, -867.9692, 30.29089),
-	-- 	radius = 20.0,
-	-- 	increaseSaleOf = 'water',
-	-- 	increaseSaleChance = 60
-	-- }
+
+	Coke = {
+		coords = vector3(277.556, -835.5033, 29.2124),
+		radius = 20.0,
+		increaseSaleOf = 'cocaine_packaged',
+		increaseSaleChance = 60,
+		increaseEarnings = 1.40
+	},
+
+	AltruistShrooms = {
+		coords = vector3(277.556, -835.5033, 29.2124),
+		radius = 20.0,
+		increaseSaleOf = 'shrooms',
+		increaseSaleChance = 70,
+		increaseFightChange = 30,
+		increaseChangeToRob = 40,
+		increaseChanceToNotify = 0,
+		increaseEarnings = 1.40
+	},
+
 }
 
--- [item name] price
+-- [item name] Recommended Price + 20
+-- Max Sell Price
 Config.Drugs = {
-	['meth_baggie'] = 25,
-	['meth_baggief'] = 25,
-	['cocaine_packaged'] = 30,
-	['cocaine_packaged_f'] = 30,
-	['joint'] = 15,
-	['fentanyl'] = 45,
-	['shrooms'] = 20,
-	['3d'] = 75
+	['meth_baggie'] = 60,
+	['meth_baggief'] = 60,
+	['cocaine_packaged'] = 50,
+	['cocaine_packaged_f'] = 50,
+	['joint'] = 35,
+	['fentanyl'] = 65,
+	['shrooms'] = 40,
+	['3d'] = 95
 }
