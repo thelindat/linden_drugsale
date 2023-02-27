@@ -69,7 +69,7 @@ CanSellDrugs = function()
 	drugs = {}
 	local drugCount = 0
 		for k, v in pairs(Config.Drugs) do
-		drugCount = drugCount + ox_inventory:Search(source, 'count', Config.Drugs[v].name)
+		drugCount = drugCount + ox_inventory:Search(source, 'count', Config.Drugs[v.name])
 	end
 	Citizen.CreateThread(function()
 		ESX.TriggerServerCallback('linden_drugsale:checkCops', function(copsOnline)
@@ -191,7 +191,7 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 				sellCount = math.random(1, drugToSell.count)
 			end
 
-			salePrice = (math.random(Config.MinimumPayment, Config.Drugs[drugToSell.name].price) * sellCount)
+			salePrice = (math.random(Config.MinimumPayment, Config.Drugs[drugToSell.name]) * sellCount)
 
 			if numberOfCops == 1 then
 				salePrice = salePrice * 1.1
