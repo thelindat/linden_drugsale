@@ -3,7 +3,7 @@ local ox_inventory = exports.ox_inventory
 RegisterNetEvent('linden_drugsale:sellDrugs')
 AddEventHandler('linden_drugsale:sellDrugs', function(drugToSell, sellCount, salePrice)
 	local src = source
-	ox_inventory:RemoteItem(src, drugToSell, sellCount)
+	ox_inventory:RemoveItem(src, drugToSell, sellCount)
 	ox_inventory:AddItem(Config.PaymentType, salePrice)
 end)
 

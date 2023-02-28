@@ -26,6 +26,7 @@ Config.SaleLocations = {
 		radius = 20.0,
 		increaseSaleOf = 'cocaine_packaged',
 		increaseSaleChance = 60,
+		increaseChanceToNotify = 35,
 		increaseEarnings = 1.40
 	},
 
@@ -34,9 +35,9 @@ Config.SaleLocations = {
 		radius = 20.0,
 		increaseSaleOf = 'shrooms',
 		increaseSaleChance = 70,
-		increaseFightChange = 30,
-		increaseChangeToRob = 40,
-		increaseChanceToNotify = 0,
+		-- increaseFightChange = 30,
+		-- increaseChangeToRob = 40,
+		-- increaseChanceToNotify = 0,
 		increaseEarnings = 1.40
 	},
 

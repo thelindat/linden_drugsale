@@ -69,8 +69,13 @@ CanSellDrugs = function()
 	drugs = {}
 	local drugCount = 0
 		for k, v in pairs(Config.Drugs) do
-			local count = exports.ox_inventory:Search('count', k)
-			drugCount = drugCount + count
+			local search = exports.ox_inventory:Search('count', k)
+			if drugs[k] then 
+				drugs[k].count = drugs[k].count + search.count 
+			else 
+				drugs[k] = {index=drugCount+1, name=k, count=search.count, label=search.label} 
+				drugCount = drugCount+1 
+			end
 	end
 	Citizen.CreateThread(function()
 		ESX.TriggerServerCallback('linden_drugsale:checkCops', function(copsOnline)
@@ -97,8 +102,9 @@ end
 
 PedInteraction = function(playerPed, ped, item, count)
 	local interaction = math.random(1, 100)
+	local chanceToRob = Config.ChanceToRob
 
-	if interaction <= Config.ChanceToRob then
+	if interaction <= chanceToRob then
 		TriggerServerEvent('linden_drugsale:robPlayer', item, count)
 		lib.notify({
 			title = 'You Were Robbed!',
@@ -147,12 +153,6 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 			ClearPedTasks(playerPed)
 			
 			local interaction = math.random(1, 100)
-
-			if interaction <= Config.ChanceToNotify then
-				local data = {displayCode = '420', description = 'Drug sale in progress', recipientList = {'police'}, length = '7000'}
-				local dispatchData = {dispatchData = data, caller = 'Local', coords = playerCoords}
-				TriggerServerEvent('wf-alerts:svNotify', dispatchData)
-			end
 			
 			local saleChance = math.random(1, 100)
 			-- local drugSelection = math.random(1, drugCount)
@@ -162,29 +162,45 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 
 			local playerCoords = GetEntityCoords(playerPed)
 			local increaseSaleOf = nil
+			local saleLocation = nil
 			local distance
+
+			local chancetoSell = Config.ChanceToSell
 
 			for i, j in pairs(Config.SaleLocations) do
 				distance = #(playerCoords - j.coords)
 				if distance < j.radius then
 					local increaseChance = math.random(1, 100)
+					interaction = j.increaseChanceToNotify
+					saleLocation = i
 					if increaseChance <= j.increaseSaleChance then
 						increaseSaleOf = j.increaseSaleOf
 					else
 						increaseSaleOf = nil
+						saleLocation = nil
 					end
 				end
 			end
+
+			-- if interaction <= Config.ChanceToNotify then
+			-- 	local data = {displayCode = '420', description = 'Drug sale in progress', recipientList = {'police'}, length = '7000'}
+			-- 	local dispatchData = {dispatchData = data, caller = 'Local', coords = playerCoords}
+			-- 	TriggerServerEvent('wf-alerts:svNotify', dispatchData)
+			-- end
 
 			for k, v in pairs(drugs) do
 				if increaseSaleOf ~= nil then
 					if v.name == increaseSaleOf then
 						drugToSell = v
+						increaseSalePrice = Config.SaleLocations(saleLocation).increaseEarnings
+						chancetoSell = (100 - Config.SaleLocations(saleLocation).increaseSaleChance)
 					else
 						drugToSell = v
+						increaseSalePrice = 1
 					end
 				else
 					drugToSell = v
+					increaseSalePrice = 1
 				end
 			end
 
@@ -192,17 +208,17 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 				sellCount = math.random(1, drugToSell.count)
 			end
 
-			salePrice = (math.random(Config.MinimumPayment, Config.Drugs[drugToSell.name]) * sellCount)
+			salePrice = ((math.random(Config.MinimumPayment, Config.Drugs[drugToSell.name]) * increaseSalePrice) * sellCount)
 
-			if numberOfCops == 1 then
+			if numberOfCops == 2 then
 				salePrice = salePrice * 1.1
-			elseif numberOfCops == 2 then
+			elseif numberOfCops == 3 then
 				salePrice = salePrice * 1.2
-			elseif numberOfCops > 2 then
+			elseif numberOfCops > 4 then
 				salePrice = salePrice * 1.3
 			end
 
-			if saleChance <= Config.ChanceToSell then
+			if saleChance <= chancetoSell then
 				TriggerEvent('linden_drugsale:requestConfirm', drugToSell.name, drugToSell.label, sellCount, math.floor(salePrice), playerPed, ped)
 			else
 				lib.notify({
