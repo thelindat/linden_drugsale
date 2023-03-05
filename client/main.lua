@@ -6,6 +6,16 @@ local waitTime = 2000
 local lastPed = nil
 local numberOfCops = 0
 
+local DrugNames = {}
+
+for k, v in pairs(Config.Drugs) do
+	table.insert(DrugNames, k)
+end
+
+----------------------------------------------------------------------------------
+-- Show 3D Text -- 
+----------------------------------------------------------------------------------
+
 StartResource = function()
 	PlayerLoaded = true
 	playerPed = PlayerPedId()
@@ -19,25 +29,6 @@ function GetPedInFront()
 	local rayHandle = StartShapeTestCapsule(playerCoords.x, playerCoords.y, playerCoords.z, plyOffset.x, plyOffset.y, plyOffset.z, 1.0, 12, playerPed, 7)
 	local _, _, _, _, ped = GetShapeTestResult(rayHandle)
 	return ped
-end
-
-function Draw3dText(coords, text)
-	local onScreen, _x, _y = World3dToScreen2d(coords.x, coords.y, coords.z)
-    local px,py,pz=table.unpack(GetGameplayCamCoords())
-	if onScreen then
-		SetTextScale(0.35, 0.35)
-		SetTextFont(4)
-		SetTextProportional(1)
-		SetTextColour(255, 255, 255, 215)
-		SetTextDropShadow(0, 0, 0, 55)
-		SetTextEdge(0, 0, 0, 150)
-		SetTextDropShadow()
-		SetTextOutline()
-		SetTextEntry("STRING")
-		SetTextCentre(1)
-		AddTextComponentString(text)
-		DrawText(_x,_y)
-	end
 end
 
 StartLoop = function()
@@ -62,46 +53,73 @@ StartLoop = function()
 	end)
 end
 
+options = {
+	{
+        name = 'ox:option2',
+        icon = 'fa-solid fa-comment-dots',
+        label = 'Sell Drugs',
+		distance = 3,
+		items = DrugNames,
+		anyItem = true,
+		onSelect = function(data)
+			local playerPed = PlayerPedId()
+			canSell = false
+			lastPed = data.entity
+			TriggerEvent('linden_drugsale:attemptSale', CountDrugs(), playerPed, data.entity)
+		end,
+         canInteract = function(entity, distance)
+             return not IsEntityDead(entity) and distance < 3 and canSell and not isSelling and entity ~= lastPed and GetPedType(entity) ~= 1 and GetPedType(entity) ~= 28 and GetPedType(entity) ~= 2
+         end
+    }
+}
+
+exports.ox_target:addGlobalPed(options)
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+CountDrugs = function()
+	local drugCount = 0
+	for k, v in pairs(Config.Drugs) do
+		local search = exports.ox_inventory:Search('count', k)
+		if search > 0 then
+			drugCount = drugCount+1 
+		end
+	end
+end
+
 CanSellDrugs = function()
-	local ped = GetPedInFront()
-	local playerPed = PlayerPedId()
+	local itemNames = {}
+
+	for item, data in pairs(exports.ox_inventory:Items()) do
+		itemNames[item] = data.label
+	end
+
 	isSelling = true
 	drugs = {}
 	local drugCount = 0
-		for k, v in pairs(Config.Drugs) do
-			local search = exports.ox_inventory:Search('count', k)
+	for k, v in pairs(Config.Drugs) do
+		local search = exports.ox_inventory:Search('count', k)
+		if search > 0 then
 			if drugs[k] then 
-				drugs[k].count = drugs[k].count + search.count 
-			else 
-				drugs[k] = {index=drugCount+1, name=k, count=search.count, label=search.label} 
+				drugs[k].count = drugs[k].count + search 
+			else
+				drugs[k] = {index=drugCount+1, name=k, count=search, label=itemNames[k]} 
 				drugCount = drugCount+1 
 			end
+		end
 	end
 	Citizen.CreateThread(function()
 		ESX.TriggerServerCallback('linden_drugsale:checkCops', function(copsOnline)
 			numberOfCops = copsOnline
 			canSell = true
 		end)
-		while canSell do
-			local sleep = 10000
-			if drugCount > 0 then
-				sleep = 5
-				Draw3dText(pedCoords,'Press ~g~[E]~w~ to sell drugs')
-				if IsControlJustReleased(0, 153) then
-					canSell = false
-					lastPed = ped
-					TriggerEvent('linden_drugsale:attemptSale', drugCount, playerPed, ped)
-					sleep = 0
-				end
-			end
-			Citizen.Wait(sleep)
-		end
 		isSelling = false
 	end)
 end
 
 PedInteraction = function(playerPed, ped, item, count)
-	local interaction = math.random(1, 100)
+	local interaction = 100
+	interaction = math.random(100)
 	local chanceToRob = Config.ChanceToRob
 
 	if interaction <= chanceToRob then
@@ -126,7 +144,7 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 	SetEntityAsMissionEntity(ped)
 	TaskStandStill(ped, 5000)
 	TaskChatToPed(ped, playerPed)
-	lib.progressBar({
+	if lib.progressBar({
 		duration = Config.AttemptSaleTime,
 		label = 'Showing your product...',
 		useWhileDead = false,
@@ -147,89 +165,87 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 			rot = vec3(0.0, -40.0, -80.0),
 			bone = 18905
 		},
-	},
-	function(status)
-		if not status then
-			ClearPedTasks(playerPed)
-			
-			local interaction = math.random(1, 100)
-			
-			local saleChance = math.random(1, 100)
-			-- local drugSelection = math.random(1, drugCount)
-			local sellCount = math.random(1, Config.MaxSellAmount)
-			local drugToSell = nil
-			local salePrice = 0
+	}) then
+		ClearPedTasks(playerPed)
+		
+		local interaction = math.random(1, 100)
+		
+		local saleChance = math.random(1, 100)
+		-- local drugSelection = math.random(1, drugCount)
+		local sellCount = math.random(Config.MaxSellAmount)
+		local drugToSell = nil
+		local salePrice = 0
 
-			local playerCoords = GetEntityCoords(playerPed)
-			local increaseSaleOf = nil
-			local saleLocation = nil
-			local distance
+		local playerCoords = GetEntityCoords(playerPed)
+		local increaseSaleOf = nil
+		local saleLocation = nil
+		local distance
 
-			local chancetoSell = Config.ChanceToSell
+		local chancetoSell = Config.ChanceToSell
 
-			for i, j in pairs(Config.SaleLocations) do
-				distance = #(playerCoords - j.coords)
-				if distance < j.radius then
-					local increaseChance = math.random(1, 100)
-					interaction = j.increaseChanceToNotify
-					saleLocation = i
-					if increaseChance <= j.increaseSaleChance then
-						increaseSaleOf = j.increaseSaleOf
-					else
-						increaseSaleOf = nil
-						saleLocation = nil
-					end
+		for i, j in pairs(Config.SaleLocations) do
+			distance = #(playerCoords - j.coords)
+			if distance < j.radius then
+				local increaseChance = math.random(1, 100)
+				interaction = j.increaseChanceToNotify
+				saleLocation = i
+				if increaseChance <= j.increaseSaleChance then
+					increaseSaleOf = j.increaseSaleOf
+				else
+					increaseSaleOf = nil
+					saleLocation = nil
 				end
 			end
+		end
 
-			-- if interaction <= Config.ChanceToNotify then
-			-- 	local data = {displayCode = '420', description = 'Drug sale in progress', recipientList = {'police'}, length = '7000'}
-			-- 	local dispatchData = {dispatchData = data, caller = 'Local', coords = playerCoords}
-			-- 	TriggerServerEvent('wf-alerts:svNotify', dispatchData)
-			-- end
+		-- if interaction <= Config.ChanceToNotify then
+		-- 	local data = {displayCode = '420', description = 'Drug sale in progress', recipientList = {'police'}, length = '7000'}
+		-- 	local dispatchData = {dispatchData = data, caller = 'Local', coords = playerCoords}
+		-- 	TriggerServerEvent('wf-alerts:svNotify', dispatchData)
+		-- end
+		local increaseSalePrice = 1
 
-			for k, v in pairs(drugs) do
-				if increaseSaleOf ~= nil then
-					if v.name == increaseSaleOf then
-						drugToSell = v
-						increaseSalePrice = Config.SaleLocations(saleLocation).increaseEarnings
-						chancetoSell = (100 - Config.SaleLocations(saleLocation).increaseSaleChance)
-					else
-						drugToSell = v
-						increaseSalePrice = 1
-					end
+		for k, v in pairs(drugs) do
+			if increaseSaleOf ~= nil then
+				if v.name == increaseSaleOf then
+					drugToSell = v
+					increaseSalePrice = Config.SaleLocations(saleLocation).increaseEarnings
+					chancetoSell = (100 - Config.SaleLocations(saleLocation).increaseSaleChance)
 				else
 					drugToSell = v
 					increaseSalePrice = 1
 				end
-			end
-
-			if sellCount > drugToSell.count then
-				sellCount = math.random(1, drugToSell.count)
-			end
-
-			salePrice = ((math.random(Config.MinimumPayment, Config.Drugs[drugToSell.name]) * increaseSalePrice) * sellCount)
-
-			if numberOfCops == 2 then
-				salePrice = salePrice * 1.1
-			elseif numberOfCops == 3 then
-				salePrice = salePrice * 1.2
-			elseif numberOfCops > 4 then
-				salePrice = salePrice * 1.3
-			end
-
-			if saleChance <= chancetoSell then
-				TriggerEvent('linden_drugsale:requestConfirm', drugToSell.name, drugToSell.label, sellCount, math.floor(salePrice), playerPed, ped)
 			else
-				lib.notify({
-					title = 'Feedback',
-					description = 'This shit is weak..',
-					type = 'inform'
-				})
-				PedInteraction(playerPed, ped, drugToSell.name, sellCount)
+				drugToSell = v
+				increaseSalePrice = 1
 			end
 		end
-	end)
+
+		if sellCount > drugToSell.count then
+			sellCount = math.random(drugToSell.count)
+		end
+
+		salePrice = ((math.random(Config.MinimumPayment, (Config.Drugs[drugToSell.name]+20)) * increaseSalePrice) * sellCount)
+
+		if numberOfCops == 2 then
+			salePrice = salePrice * 1.1
+		elseif numberOfCops == 3 then
+			salePrice = salePrice * 1.2
+		elseif numberOfCops > 4 then
+			salePrice = salePrice * 1.3
+		end
+
+		if saleChance <= chancetoSell then
+			TriggerEvent('linden_drugsale:requestConfirm', drugToSell.name, drugToSell.label, sellCount, math.floor(salePrice), playerPed, ped)
+		else
+			lib.notify({
+				title = 'Feedback',
+				description = 'This shit is weak..',
+				type = 'inform'
+			})
+			PedInteraction(playerPed, ped, drugToSell.name, sellCount)
+		end
+	end
 end)
 
 AddEventHandler('linden_drugsale:requestConfirm', function(drugToSell, label, sellCount, salePrice, playerPed, ped)
@@ -268,7 +284,7 @@ AddEventHandler('linden_drugsale:requestConfirm', function(drugToSell, label, se
 end)
 
 AddEventHandler('linden_drugsale:confirmSale', function(drugToSell, sellCount, salePrice, playerPed, ped)
-	lib.progressBar({
+	if lib.progressBar({
 		duration = Config.SaleTime,
 		label = 'Making the deal...',
 		useWhileDead = false,
@@ -288,15 +304,13 @@ AddEventHandler('linden_drugsale:confirmSale', function(drugToSell, sellCount, s
 			pos = vec3(0.03, 0.03, 0.02),
 			rot = vec3(0.0, 0.0, -1.5)
 		},
-	}, function(status)
-		if not status then
+	}) then
 			ClearPedTasks(playerPed)
 			TriggerServerEvent('linden_drugsale:sellDrugs', drugToSell, sellCount, salePrice)
 			Citizen.Wait(1000)
 			SetPedAsNoLongerNeeded(ped)
 			isSelling = false
 		end
-	end)
 end)
 
 if ESX.IsPlayerLoaded() then StartResource() end

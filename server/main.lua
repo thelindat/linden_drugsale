@@ -4,7 +4,7 @@ RegisterNetEvent('linden_drugsale:sellDrugs')
 AddEventHandler('linden_drugsale:sellDrugs', function(drugToSell, sellCount, salePrice)
 	local src = source
 	ox_inventory:RemoveItem(src, drugToSell, sellCount)
-	ox_inventory:AddItem(Config.PaymentType, salePrice)
+	ox_inventory:AddItem(src, Config.PaymentType, salePrice)
 end)
 
 RegisterNetEvent('linden_drugsale:robPlayer')

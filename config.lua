@@ -43,15 +43,14 @@ Config.SaleLocations = {
 
 }
 
--- [item name] Recommended Price + 20
 -- Max Sell Price
 Config.Drugs = {
-	['meth_baggie'] = 60,
-	['meth_baggief'] = 60,
-	['cocaine_packaged'] = 50,
-	['cocaine_packaged_f'] = 50,
-	['joint'] = 35,
-	['fentanyl'] = 65,
-	['shrooms'] = 40,
-	['3d'] = 95
+	['meth_baggie'] = 40,
+	['meth_baggief'] = 40,
+	['cocaine_packaged'] = 35,
+	['cocaine_packaged_f'] = 35,
+	['joint'] = 15,
+	['fentanyl'] = 45,
+	['shrooms'] = 20,
+	['3d'] = 75
 }
