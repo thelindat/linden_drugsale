@@ -1,8 +1,10 @@
 ### Requires [ESX Legacy](https://github.com/esx-framework/es_extended/tree/legacy)
-## Not a completed resource
-I started this to assist somebody else. It's completely usable but needs more work such as animations/scenarios, timers, remembering peds that you have interacted with previously, etc.
 
-### SiiR-Affinity Update
+Walk up to NPCs with drugs in your inventory, and ox-target them to sell! Easy as that.
+
+### Shark Update
 Requires:
-- mythic_progbar
-- ms-notify
+-Ox Lib
+-Ox Inventory
+-Ox Target
+-Sonoran CAD
