@@ -25,3 +25,18 @@ ESX.RegisterServerCallback('linden_drugsale:checkCops', function(copsOnline, cal
 	end
 	callback(copsOnline)
 end)
+
+RegisterNetEvent('linden_drugsale:snitch')
+AddEventHandler('linden_drugsale:snitch', function(streetname, postal)
+	print(postal)
+	exports["sonorancad"]:performApiRequest({{
+		["serverId"] = GetConvar("sonoran_serverId", 1),
+		["isEmergency"] = true,
+		["caller"] = 'Snitch',
+		["location"] = '['..postal..'] '..streetname,
+		["description"] = 'Someone just tried to sell me drugs!',
+		["metaData"] = {
+			["postal"] = postal,
+		}
+	}}, "CALL_911", false)
+end)

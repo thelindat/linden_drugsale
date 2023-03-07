@@ -6,24 +6,39 @@ local waitTime = 2000
 local lastPed = nil
 local numberOfCops = 0
 
+<<<<<<< Updated upstream
 local DrugNames = {}
 
+=======
+local chanceToNotify = Config.ChanceToNotify
+local chanceToRob = Config.ChanceToRob
+local chanceToSell = Config.ChanceToSell
+local chanceToFight = Config.ChanceToFight
+
+local DrugNames = {}
+local drugs = {}
+>>>>>>> Stashed changes
 for k, v in pairs(Config.Drugs) do
 	table.insert(DrugNames, k)
 end
 
 ----------------------------------------------------------------------------------
+<<<<<<< Updated upstream
 -- Show 3D Text -- 
+=======
+-- Target -- 
+>>>>>>> Stashed changes
 ----------------------------------------------------------------------------------
 
 StartResource = function()
 	PlayerLoaded = true
-	playerPed = PlayerPedId()
-	playerCoords = GetEntityCoords(playerPed)
-	playerID = GetPlayerServerId(PlayerId())
+	local playerPed = PlayerPedId()
+	local playerCoords = GetEntityCoords(playerPed)
+	local playerID = GetPlayerServerId(PlayerId())
 	StartLoop()
 end
 
+<<<<<<< Updated upstream
 function GetPedInFront()
 	local plyOffset = GetOffsetFromEntityInWorldCoords(playerPed, 0.0, 1.3, 0.0)
 	local rayHandle = StartShapeTestCapsule(playerCoords.x, playerCoords.y, playerCoords.z, plyOffset.x, plyOffset.y, plyOffset.z, 1.0, 12, playerPed, 7)
@@ -31,29 +46,24 @@ function GetPedInFront()
 	return ped
 end
 
+=======
+>>>>>>> Stashed changes
 StartLoop = function()
 	Citizen.CreateThread(function()
 		while PlayerLoaded do
-			playerCoords = GetEntityCoords(playerPed)
-			local ped = GetPedInFront()
-			if ped ~= 0 and ped ~= lastPed and GetPedType(ped) ~= 1 and GetPedType(ped) ~= 28 and GetPedType(ped) ~= 2 and not IsEntityDead(ped) then
-				pedCoords = GetEntityCoords(ped)
-				local dist = #(playerCoords - pedCoords)
-				if dist < 3.0 then waitTime = 10
-					if not isSelling then
-						CanSellDrugs()
-					end
-				elseif dist < 4.0 then waitTime = 500 canSell = false end
-			else
-				waitTime = 2000
-				if canSell then canSell = false end
-			end
+			if not isSelling then
+				CanSellDrugs()
+			else waitTime = 10000 end
 			Citizen.Wait(waitTime)
 		end
 	end)
 end
 
+<<<<<<< Updated upstream
 options = {
+=======
+local options = {
+>>>>>>> Stashed changes
 	{
         name = 'ox:option2',
         icon = 'fa-solid fa-comment-dots',
@@ -63,9 +73,16 @@ options = {
 		anyItem = true,
 		onSelect = function(data)
 			local playerPed = PlayerPedId()
+<<<<<<< Updated upstream
 			canSell = false
 			lastPed = data.entity
 			TriggerEvent('linden_drugsale:attemptSale', CountDrugs(), playerPed, data.entity)
+=======
+			local drugCount = CountDrugs()
+			canSell = false
+			lastPed = data.entity
+			TriggerEvent('linden_drugsale:attemptSale', drugCount, playerPed, data.entity)
+>>>>>>> Stashed changes
 		end,
          canInteract = function(entity, distance)
              return not IsEntityDead(entity) and distance < 3 and canSell and not isSelling and entity ~= lastPed and GetPedType(entity) ~= 1 and GetPedType(entity) ~= 28 and GetPedType(entity) ~= 2
@@ -75,8 +92,50 @@ options = {
 
 exports.ox_target:addGlobalPed(options)
 ----------------------------------------------------------------------------------
+<<<<<<< Updated upstream
 
 ----------------------------------------------------------------------------------
+=======
+-- Debug -- 
+----------------------------------------------------------------------------------
+
+if Config.Debug then
+	for i, j in pairs(Config.SaleLocations) do
+		Citizen.CreateThread(function()
+				local blip = AddBlipForRadius(j.coords , j.radius) -- you can use a higher number for a bigger zone
+
+				SetBlipHighDetail(blip, true)
+				SetBlipColour(blip, 1)
+				SetBlipAlpha (blip, 128)
+		end)
+	end
+
+	RegisterCommand('checkzone', function()
+		local playerPed = PlayerPedId()
+		local playerCoords = GetEntityCoords(playerPed)
+		for i, j in pairs(Config.SaleLocations) do
+			distance = #(playerCoords - j.coords)
+			if distance < j.radius then
+				return TriggerEvent('chat:addMessage', {
+					color = { 255, 0, 0},
+					multiline = true,
+					args = {i}
+				  })
+			end
+		end
+		TriggerEvent('chat:addMessage', {
+			color = { 255, 0, 0},
+			multiline = true,
+			args = {'nil'}
+		  })
+	end, false)
+end
+
+----------------------------------------------------------------------------------
+-- Functions -- 
+----------------------------------------------------------------------------------
+
+>>>>>>> Stashed changes
 CountDrugs = function()
 	local drugCount = 0
 	for k, v in pairs(Config.Drugs) do
@@ -85,6 +144,10 @@ CountDrugs = function()
 			drugCount = drugCount+1 
 		end
 	end
+<<<<<<< Updated upstream
+=======
+	return drugCount
+>>>>>>> Stashed changes
 end
 
 CanSellDrugs = function()
@@ -117,6 +180,7 @@ CanSellDrugs = function()
 	end)
 end
 
+<<<<<<< Updated upstream
 PedInteraction = function(playerPed, ped, item, count)
 	local interaction = 100
 	interaction = math.random(100)
@@ -139,6 +203,11 @@ PedInteraction = function(playerPed, ped, item, count)
 	isSelling = false
 	SetPedAsNoLongerNeeded(ped)
 end
+=======
+----------------------------------------------------------------------------------
+-- Attempt to Sell -- 
+----------------------------------------------------------------------------------
+>>>>>>> Stashed changes
 
 AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, ped)
 	SetEntityAsMissionEntity(ped)
@@ -171,7 +240,11 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 		local interaction = math.random(1, 100)
 		
 		local saleChance = math.random(1, 100)
+<<<<<<< Updated upstream
 		-- local drugSelection = math.random(1, drugCount)
+=======
+		local drugSelection = math.random(1, drugCount)
+>>>>>>> Stashed changes
 		local sellCount = math.random(Config.MaxSellAmount)
 		local drugToSell = nil
 		local salePrice = 0
@@ -181,6 +254,7 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 		local saleLocation = nil
 		local distance
 
+<<<<<<< Updated upstream
 		local chancetoSell = Config.ChanceToSell
 
 		for i, j in pairs(Config.SaleLocations) do
@@ -211,16 +285,60 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 					drugToSell = v
 					increaseSalePrice = Config.SaleLocations(saleLocation).increaseEarnings
 					chancetoSell = (100 - Config.SaleLocations(saleLocation).increaseSaleChance)
+=======
+		for i, j in pairs(Config.SaleLocations) do
+			distance = #(playerCoords - j.coords)
+			if distance < j.radius then
+				local increaseChance = math.random(100)
+				chanceToNotify = chanceToNotify + j.increaseNotifyChance
+				chanceToRob = chanceToRob + j.increaseRobChance
+				chanceToFight = chanceToFight + j.increaseFightChance
+
+				saleLocation = i
+				if increaseChance <= j.increaseSaleChance then
+					increaseSaleOf = j.increaseSaleOf
+>>>>>>> Stashed changes
 				else
-					drugToSell = v
-					increaseSalePrice = 1
+					increaseSaleOf = nil
+					saleLocation = nil
 				end
+<<<<<<< Updated upstream
 			else
 				drugToSell = v
 				increaseSalePrice = 1
 			end
 		end
 
+=======
+			end
+		end
+
+		if interaction <= chanceToNotify then
+			local x, y, z = table.unpack(playerCoords)
+			local streetname = GetStreetNameFromHashKey(GetStreetNameAtCoord(x,y,z))
+			local postal = exports.postal:getPostal()
+			TriggerServerEvent('linden_drugsale:snitch', streetname, tonumber(postal))
+		end
+		local increaseSalePrice = 1
+
+		for k, v in pairs(drugs) do
+			if increaseSaleOf ~= nil then
+				if v.name == increaseSaleOf then
+					increaseSalePrice = Config.SaleLocations[saleLocation].increaseEarnings
+					chanceToSell = chanceToSell + Config.SaleLocations[saleLocation].increaseSaleChance
+					chanceToRob = chanceToRob + Config.SaleLocations[saleLocation].increaseRobChance
+					drugToSell = v
+				elseif v.index == drugSelection then
+					drugToSell = v
+				end
+			else
+				if v.index == drugSelection then
+					drugToSell = v
+				end
+			end
+		end
+
+>>>>>>> Stashed changes
 		if sellCount > drugToSell.count then
 			sellCount = math.random(drugToSell.count)
 		end
@@ -235,7 +353,11 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 			salePrice = salePrice * 1.3
 		end
 
+<<<<<<< Updated upstream
 		if saleChance <= chancetoSell then
+=======
+		if saleChance <= chanceToSell then
+>>>>>>> Stashed changes
 			TriggerEvent('linden_drugsale:requestConfirm', drugToSell.name, drugToSell.label, sellCount, math.floor(salePrice), playerPed, ped)
 		else
 			lib.notify({
@@ -248,6 +370,10 @@ AddEventHandler('linden_drugsale:attemptSale', function(drugCount, playerPed, pe
 	end
 end)
 
+----------------------------------------------------------------------------------
+-- Confirm Sale -- 
+----------------------------------------------------------------------------------
+
 AddEventHandler('linden_drugsale:requestConfirm', function(drugToSell, label, sellCount, salePrice, playerPed, ped)
 	Citizen.CreateThread(function()
 		local timer = 0
@@ -255,13 +381,8 @@ AddEventHandler('linden_drugsale:requestConfirm', function(drugToSell, label, se
 		while timer < Config.SaleConfirmTime do
 			Citizen.Wait(0)
 			timer = timer + 1
-			if IsControlJustReleased(0, 38) then
-				lib.notify({
-					title = 'Sold',
-					description = 'Thanks man.',
-					type = 'success'
-				})				
-				TriggerEvent('linden_drugsale:confirmSale', drugToSell, sellCount, salePrice, playerPed, ped)
+			if IsControlJustReleased(0, 38) then			
+				TriggerEvent('linden_drugsale:confirmSale', drugToSell, sellCount, salePrice, playerPed, ped, label)
 				break
 			end
 		end
@@ -283,7 +404,11 @@ AddEventHandler('linden_drugsale:requestConfirm', function(drugToSell, label, se
 	})
 end)
 
+<<<<<<< Updated upstream
 AddEventHandler('linden_drugsale:confirmSale', function(drugToSell, sellCount, salePrice, playerPed, ped)
+=======
+AddEventHandler('linden_drugsale:confirmSale', function(drugToSell, sellCount, salePrice, playerPed, ped, label)
+>>>>>>> Stashed changes
 	if lib.progressBar({
 		duration = Config.SaleTime,
 		label = 'Making the deal...',
@@ -301,10 +426,18 @@ AddEventHandler('linden_drugsale:confirmSale', function(drugToSell, sellCount, s
 		},
 		prop = {
 			model = 'prop_drug_package_02',
-			pos = vec3(0.03, 0.03, 0.02),
+			pos = vec3(0.00, 0.00, 0.00),
 			rot = vec3(0.0, 0.0, -1.5)
 		},
 	}) then
+<<<<<<< Updated upstream
+=======
+			lib.notify({
+				title = 'Dealt Drugs',
+				description = 'You sold '..sellCount..' '..label..'s',
+				type = 'success'
+			})	
+>>>>>>> Stashed changes
 			ClearPedTasks(playerPed)
 			TriggerServerEvent('linden_drugsale:sellDrugs', drugToSell, sellCount, salePrice)
 			Citizen.Wait(1000)
@@ -312,5 +445,31 @@ AddEventHandler('linden_drugsale:confirmSale', function(drugToSell, sellCount, s
 			isSelling = false
 		end
 end)
+
+----------------------------------------------------------------------------------
+-- Interaction -- 
+----------------------------------------------------------------------------------
+
+PedInteraction = function(playerPed, ped, item, count)
+	local interaction = 100
+	interaction = math.random(100)
+	
+	if interaction <= chanceToRob then
+		TriggerServerEvent('linden_drugsale:robPlayer', item, count)
+		lib.notify({
+			title = 'You Were Robbed!',
+			description = 'Someone took off with your shit!',
+			type = 'error'
+		})		
+		SetPedAsNoLongerNeeded(ped)
+		TaskSmartFleePed(ped, playerPed, 1000.0, -1, false, true)
+	end
+
+	if interaction <= chanceToFight then
+		TaskCombatPed(ped, playerPed, 0, 16)
+	end
+	isSelling = false
+	SetPedAsNoLongerNeeded(ped)
+end
 
 if ESX.IsPlayerLoaded() then StartResource() end
